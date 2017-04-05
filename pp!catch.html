@@ -190,7 +190,7 @@
 			}
 			
 			window.onload = function(){
-				document.getElementById("error").innerHTML = "Create one at <a href=\"https://osu.ppy.sh/p/api\">https://osu.ppy.sh/p/api</a><br>Beatmap Listing: <a href=\"https://osu.ppy.sh/p/beatmaplist\">https://osu.ppy.sh/p/beatmaplist</a>"
+				document.getElementById("error").innerHTML = "Create an API key at <a href=\"https://osu.ppy.sh/p/api\">https://osu.ppy.sh/p/api</a><br>Beatmap Listing: <a href=\"https://osu.ppy.sh/p/beatmaplist\">https://osu.ppy.sh/p/beatmaplist</a>"
 				document.getElementById("akArea").value = getCookie("api")
 				console.log(getCookie("api"))
 			}
@@ -284,5 +284,12 @@
 			setCookie("api", document.getElementById("akArea").value, 30)
 			console.log(getCookie("api"))
 		}) 
+		document.getElementById("pcArea").addEventListener("keyup", main) 
+		document.getElementById("accArea").addEventListener("keyup", main) 
+		document.getElementById("mnArea").addEventListener("keyup", main)
+		document.getElementById("mod-nf").addEventListener("click", main)
+		document.getElementById("mod-fl").addEventListener("click", main)
+		document.getElementById("mod-hd").addEventListener("click", main)
+
 	</script>
 </html>
