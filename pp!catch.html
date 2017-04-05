@@ -184,7 +184,7 @@
 				document.getElementById("error").innerHTML = ""
 				var beatmap_data, a
 				beatmap_data = get_b_api_data(document.getElementById("akArea").value, document.getElementById("biArea").value)
-				console.log(beatmap_data) 
+				document.getElementById("infArea").innerHTML = "Stars: " + beatmap_data[0].difficultyrating + "<br>CS: " + beatmap_data[0].diff_size + "<br>AR: " + beatmap_data[0].diff_approach + "<br>OD: " + beatmap_data[0].diff_overall + "<br>HP: " + beatmap_data[0].diff_drain + "<br>Max Combo: " + beatmap_data[0].max_combo
 				pp = ctb_pp_calc(beatmap_data[0].difficultyrating, beatmap_data[0].max_combo, document.getElementById("pcArea").value, document.getElementById("mnArea").value, beatmap_data[0].diff_approach, document.getElementById("accArea").value)
 				document.getElementById("ppValue").innerHTML = pp
 			}
@@ -225,6 +225,10 @@
 
 								<tr>
 									<td class="text-xs-center"><b>Beatmap ID</b></td><td><input type="text" id="biArea" class="form-control" placeholder="https://osu.ppy.sh/b/{number here}"></td>
+								</tr>
+
+								<tr>
+									<td class="text-xs-center"><b>Info: </b></td><td><span id="infArea"></span></td>
 								</tr>
 
 								<!--tr>
