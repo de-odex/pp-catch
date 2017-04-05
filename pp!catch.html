@@ -59,17 +59,52 @@
 			}
 
 			function validate(id_name) {
-			        if (document.getElementById(id_name).checked){
-			            return true
-			        }
-			        else {
-			            return false
-			        }
-			    }
+				if (document.getElementById(id_name).checked){
+					return true
+				}
+				else {
+					return false
+				}
+			}
+
+			function setCookie(cname, cvalue, exdays) {
+				var d = new Date();
+				d.setTime(d.getTime() + (exdays*24*60*60*1000));
+				var expires = "expires="+ d.toUTCString();
+				console.log(expires)
+				document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+				console.log(cname + "=" + cvalue + ";" + expires + ";path=/")
+			}
+
+			function getCookie(cname) {
+				var name = cname + "=";
+				var decodedCookie = decodeURIComponent(document.cookie);
+				var ca = decodedCookie.split(';');
+				for(var i = 0; i <ca.length; i++) {
+					var c = ca[i];
+					while (c.charAt(0) == ' ') {
+						c = c.substring(1);
+					}
+					if (c.indexOf(name) == 0) {
+						return c.substring(name.length, c.length);
+					}
+				}
+				return "";
+			}
 
 
 			function ctb_pp_calc(stars, max_combo, max_player_combo, miss, ar, acc){
 				var finalpp
+				//console.log(stars + " " + max_combo + " " + max_player_combo + " " + miss + " " + ar + " " + acc)
+				if ((max_player_combo=="")||(max_player_combo>max_combo)){
+					max_player_combo = max_combo - miss
+				}
+				if ((miss=="")||(miss>max_combo)){
+					miss = 0
+				}
+				if (!(acc>0)||!(acc<100)){
+					acc = 100
+				}
 				//stars2pp
 				finalpp = Math.pow(((5 * Math.max(1, stars / 0.0049)) - 4), 2) / 100000
 				//length bonus
@@ -116,30 +151,42 @@
 			}
 
 			function get_b_api_data(api_key, beatmap_id){
-				var api_key = "7ec7168b3a0b7bec07fe66e7bbe259a15bafc287";
 				var api = new XMLHttpRequest();
-				api.open("GET", "https://osu.ppy.sh/api/get_beatmaps?k=" + api_key + "&b=" + beatmap_id + "&m=2&a=1");
-				api.send();
-				api.onreadystatechange = function(){
+				try {
+					api.open("GET", "https://osu.ppy.sh/api/get_beatmaps?k=" + api_key + "&b=" + beatmap_id + "&m=2&a=1", false);
+					api.send();
+					//console.log(api.readyState)
+					//console.log(api.status)
 					if (api.readyState == 4 && (api.status == 200 || api.status == 304)) { 
 						data = JSON.parse(api.response)
-						console.log("im here now")
-						try {
-							return data
+						//console.log(api.response)
+						console.log(data)
+						if (typeof data[0] === 'undefined'){ 
+							document.getElementById("error").innerHTML = "No Beatmap ID!"
 						}
-						catch(e){
-							document.getElementById("error").innerHTML = "No API Key or Beatmap ID!"
+						else {
+							return data
 						}
 						//console.log(data[0].difficultyrating)
 					}
-					else {}
+				}
+				catch(e){
+					document.getElementById("error").innerHTML = "No API Key/No internet!"
 				}
 			}
 
 			function main(){
-				var beatmap_data 
-				beatmap_data = get_b_api_data(0, document.getElementById("biArea").value)
-				console.log(beatmap_data)
+				document.getElementById("error").innerHTML = ""
+				var beatmap_data, a
+				beatmap_data = get_b_api_data(document.getElementById("akArea").value, document.getElementById("biArea").value)
+				console.log(beatmap_data) 
+				pp = ctb_pp_calc(beatmap_data[0].difficultyrating, beatmap_data[0].max_combo, document.getElementById("pcArea").value, document.getElementById("mnArea").value, beatmap_data[0].diff_approach, document.getElementById("accArea").value)
+				document.getElementById("ppValue").innerHTML = pp
+			}
+			
+			window.onload = function(){
+				document.getElementById("akArea").value = getCookie("api")
+				console.log(getCookie("api"))
 			}
 
 		</script>
@@ -162,7 +209,16 @@
 						<table class="table table-bordered table-hover">
 							<tbody>
 								<tr>
-									<td class="text-xs-center"><b>Beatmap ID</b></td><td><input type="text" id="biArea" class="form-control" placeholder="192837"></td>
+									<td></td>
+									<td class="text-xs-center">COOKIES WILL BE SAVED</td>
+								</tr>
+
+								<tr>
+									<td class="text-xs-center"><b>API Key</b></td><td><input type="text" id="akArea" class="form-control" placeholder="Create one at https://osu.ppy.sh/p/api"></td>
+								</tr>
+
+								<tr>
+									<td class="text-xs-center"><b>Beatmap ID</b></td><td><input type="text" id="biArea" class="form-control" placeholder="https://osu.ppy.sh/s/{number here}"></td>
 								</tr>
 
 								<!--tr>
@@ -174,15 +230,15 @@
 								</tr-->
 
 								<tr>
-									<td class="text-xs-center"><b>Combo</b></td><td><input type="text" id="pcArea" class="form-control" placeholder="1337"></td>
+									<td class="text-xs-center"><b>Combo</b></td><td><input type="text" id="pcArea" class="form-control" placeholder="MAX"></td>
 								</tr>
 
 								<tr>
-									<td class="text-xs-center"><b>Accuracy</b></td><td><input type="text" id="accArea" class="form-control" placeholder="99.69"></td>
+									<td class="text-xs-center"><b>Accuracy</b></td><td><input type="text" id="accArea" class="form-control" placeholder="100"></td>
 								</tr>
 
 								<tr>
-									<td class="text-xs-center"><b>Misses</b></td><td><input type="text" id="mnArea" class="form-control" placeholder="88"></td>
+									<td class="text-xs-center"><b>Misses</b></td><td><input type="text" id="mnArea" class="form-control" placeholder="0"></td>
 								</tr>
 
 								<tr>
@@ -217,4 +273,10 @@
 			</div>
 		</div>
 	</body>
+	<script type="text/javascript">
+		document.getElementById("akArea").addEventListener("keyup", function(){
+			setCookie("api", document.getElementById("akArea").value, 30)
+			console.log(getCookie("api"))
+		}) 
+	</script>
 </html>
