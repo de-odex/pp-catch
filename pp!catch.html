@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>JS Constructors - SW4</title>
+		<title>pp!catch</title>
 		<meta charset="UTF-8"/>
-	</head>
-	<body>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<script>
 			/*
 			config.read('config.ini')
@@ -43,37 +45,46 @@
 					ar = round((11 - (ms - 300) / 150) * 100, 0) / 100
 				else:
 					ar = round((5 - (ms - 1200) / 120) * 100, 0) / 100
-				print(ar)
-			print(ar)
-			finalpp = pow(((5 * max(1, stars / 0.0049)) - 4), 2) / 100000
-			finalpp *= 0.95 + 0.4 * min(1.0, max_combo / 3000.0) + (math.log(max_combo / 3000.0, 10) * 0.5 if max_combo > 3000 else 0.0)
-			finalpp *= pow(0.97, miss)
-			finalpp *= pow(max_player_combo / max_combo, 0.8)
-			if (ar > 9):
-				finalpp *= 1 + 0.1 * (ar - 9.0)
-			if (ar < 8):
-				finalpp *= 1 + 0.025 * (8.0 - ar)
-			else:
-				finalpp *= 1
-			finalpp *= pow(acc / 100, 5.5)
-
-			# mods
-			if HD.get() == 1:
-				finalpp *= 1.05 + 0.075 * (10.0 - min(10.0, ar))
-			if FL.get() == 1:
-				finalpp *= 1.35 * (0.95 + 0.4 * min(1.0, max_combo / 3000.0) + (math.log(max_combo / 3000.0, 10) * 0.5 if max_combo > 3000 else 0.0))
-			if NF.get() == 1:
-				finalpp *= 0.90
-			# END
 
 			ppdisplaying(round(finalpp, 2))
 			*/
+			function roundNumber(num, scale) {
+				var number = Math.round(num * Math.pow(10, scale)) / Math.pow(10, scale);
+				if(num - number > 0){
+					return (number + Math.floor(2 * Math.round((num - number) * Math.pow(10, (scale + 1))) / 10) / Math.pow(10, scale));
+				} 
+				else {
+					return number;
+				}
+			}
 
-			function ctbppcalc(){
-				finalpp = pow(((5 * max(1, stars / 0.0049)) - 4), 2) / 100000
-				finalpp *= 0.95 + 0.4 * min(1.0, max_combo / 3000.0) + (math.log(max_combo / 3000.0, 10) * 0.5 if max_combo > 3000 else 0.0)
-				finalpp *= pow(0.97, miss)
-				finalpp *= pow(max_player_combo / max_combo, 0.8)
+			function validate(id_name) {
+			        if (document.getElementById(id_name).checked){
+			            return true
+			        }
+			        else {
+			            return false
+			        }
+			    }
+
+
+			function ctb_pp_calc(stars, max_combo, max_player_combo, miss, ar, acc){
+				var finalpp
+				//stars2pp
+				finalpp = Math.pow(((5 * Math.max(1, stars / 0.0049)) - 4), 2) / 100000
+				//length bonus
+				if (max_combo > 3000){
+					var temp = Math.log10(max_combo / 3000.0) * 0.5
+				}
+				else {
+					var temp = 0
+				}
+				finalpp *= 0.95 + 0.4 * Math.min(1.0, max_combo / 3000.0) + temp
+				//exponential miss l(osu!)
+				finalpp *= Math.pow(0.97, miss)
+				//combo multiplier
+				finalpp *= Math.pow(max_player_combo / max_combo, 0.8)
+				//ar multiplier
 				if (ar > 9){
 					finalpp *= 1 + 0.1 * (ar - 9.0)
 				}
@@ -83,8 +94,127 @@
 				else {
 					finalpp *= 1
 				}
-				finalpp *= pow(acc / 100, 5.5)
+				//acc multiplier
+				finalpp *= Math.pow(acc / 100, 5.5)
+				//mods
+				if (validate("mod-hd") == true){
+					finalpp *= 1.05 + 0.075 * (10.0 - Math.min(10.0, ar))
+				}
+				if (validate("mod-fl") == true){
+					if (max_combo > 3000){
+						var temp = Math.log10(max_combo / 3000.0) * 0.5
+					}
+					else {
+						var temp = 0
+					}
+					finalpp *= 1.35 * (0.95 + 0.4 * Math.min(1.0, max_combo / 3000.0) + temp)
+				}
+				if (validate("mod-nf") == true){
+					finalpp *= 0.90
+				}
+				return roundNumber(finalpp, 3)
 			}
+
+			function get_b_api_data(api_key, beatmap_id){
+				var api_key = "7ec7168b3a0b7bec07fe66e7bbe259a15bafc287";
+				var api = new XMLHttpRequest();
+				api.open("GET", "https://osu.ppy.sh/api/get_beatmaps?k=" + api_key + "&b=" + beatmap_id + "&m=2&a=1");
+				api.send();
+				api.onreadystatechange = function(){
+					if (api.readyState == 4 && (api.status == 200 || api.status == 304)) { 
+						data = JSON.parse(api.response)
+						console.log("im here now")
+						try {
+							return data
+						}
+						catch(e){
+							document.getElementById("error").innerHTML = "No API Key or Beatmap ID!"
+						}
+						//console.log(data[0].difficultyrating)
+					}
+					else {}
+				}
+			}
+
+			function main(){
+				var beatmap_data 
+				beatmap_data = get_b_api_data(0, document.getElementById("biArea").value)
+				console.log(beatmap_data)
+			}
+
 		</script>
+
+
+		<style>
+			.text-xs-center{
+				text-align: center;
+				vertical-align: middle;
+			}
+		</style>
+
+
+	</head>
+	<body>
+		<div class="container" style="margin-top: 50px;">
+			<div class="row">
+				<div class="col-md-12">
+					<form id="calcForm">
+						<table class="table table-bordered table-hover">
+							<tbody>
+								<tr>
+									<td class="text-xs-center"><b>Beatmap ID</b></td><td><input type="text" id="biArea" class="form-control" placeholder="192837"></td>
+								</tr>
+
+								<!--tr>
+									<td class="text-xs-center"><b>Star Rating</b></td><td><input type="text" id="srArea" class="form-control" placeholder="4.20"></td>
+								</tr>
+
+								<tr>
+									<td class="text-xs-center"><b>Max Combo</b></td><td><input type="text" id="mcArea" class="form-control" placeholder="1942"></td>
+								</tr-->
+
+								<tr>
+									<td class="text-xs-center"><b>Combo</b></td><td><input type="text" id="pcArea" class="form-control" placeholder="1337"></td>
+								</tr>
+
+								<tr>
+									<td class="text-xs-center"><b>Accuracy</b></td><td><input type="text" id="accArea" class="form-control" placeholder="99.69"></td>
+								</tr>
+
+								<tr>
+									<td class="text-xs-center"><b>Misses</b></td><td><input type="text" id="mnArea" class="form-control" placeholder="88"></td>
+								</tr>
+
+								<tr>
+									<td class="text-xs-center"><b>Mods</b></td>
+
+									<td>
+										<div class="mods">
+											<input class="disabled" type="checkbox" id="mod-ez" name="mod-ez"> <label for="mod-ez">Easy</label> 
+											<input class="disabled" type="checkbox" id="mod-ht" name="mod-ht"> <label for="mod-ht">HalfTime</label> 
+											<input type="checkbox" id="mod-nf" name="mod-nf"> <label for="mod-nf">NoFail</label>
+											<input class="disabled" type="checkbox" id="mod-dt" name="mod-dt"> <label for="mod-dt">DoubleTime</label> 
+											<input class="disabled" type="checkbox" id="mod-hr" name="mod-hr"> <label for="mod-hr">HardRock</label> 
+											<input type="checkbox" id="mod-fl" name="mod-fl"> <label for="mod-fl">Flashlight</label> 
+											<input type="checkbox" id="mod-hd" name="mod-hd"> <label for="mod-hd">Hidden</label>
+										</div>
+									</td>
+								</tr>
+
+								<tr>
+									<td class="text-xs-center"><b>PP value</b></td><td class="text-xs-center"><b><h3><span id="ppValue" style="margin=0">42069PEPPY</span>pp</h3></b></td>
+								</tr>
+
+								<tr>
+									<td><input type="button" class="btn btn-primary btn-group-justified	pull-right" value="Reset form" onclick="resetForm();"></td>
+									<td class="text-xs-center" id="error"></td>
+								</tr>
+
+							</tbody>
+						</table>
+					</form>
+				</div>
+			</div>
+		</div>
 	</body>
 </html>
