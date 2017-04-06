@@ -4,6 +4,7 @@
 		<title>pp!catch</title>
 		<meta charset="UTF-8"/>
 		<link rel="shortcut icon" type="image/png" href="/pp-catch/assets/osu-logo@2x.png"/>
+		<link rel="shortcut icon" type="image/png" href="./assets/osu-logo@2x.png"/>
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -141,7 +142,7 @@
 						//console.log(api.response)
 						//console.log(data)
 						if (typeof data[0] === 'undefined'){ 
-							document.getElementById("error").innerHTML = "No Beatmap ID!"
+							document.getElementById("error").innerHTML = "Invalid Beatmap ID!"
 						}
 						else {
 							return data
@@ -150,12 +151,10 @@
 					}
 				}
 				catch(e){
-					try{
-						itnt.open("GET", "https://www.google.com", false);
-						itnt.send();
+					if (window.navigator.onLine==true){
 						document.getElementById("error").innerHTML = "No API Key!"
 					}
-					catch(ee){
+					else{
 						document.getElementById("error").innerHTML = "No connection! Re-establish a connection to the internet."
 					}
 				}
@@ -164,9 +163,18 @@
 			function main(){
 				document.getElementById("error").innerHTML = "Create an API key at <a href=\"https://osu.ppy.sh/p/api\">https://osu.ppy.sh/p/api</a><br>Beatmap Listing: <a href=\"https://osu.ppy.sh/p/beatmaplist\">https://osu.ppy.sh/p/beatmaplist</a>"
 				var beatmap_data, a, btmp_link, btmp_pathname, btmp_id
+
 				btmp_link = getLocation(document.getElementById("biArea").value)
 				btmp_pathname = btmp_link.pathname
-				btmp_id = btmp_pathname.split("/")[2]
+				console.log(btmp_link.hostname+" "+btmp_pathname.split("/")[1])
+				if ((btmp_pathname.split("/")[1] == "b") && (btmp_link.hostname == "osu.ppy.sh")){
+					btmp_id = btmp_pathname.split("/")[2]
+				}
+				else {
+					document.getElementById("error").innerHTML = "The link you input is not a beatmap link."
+					return
+				}
+
 				beatmap_data = get_b_api_data(document.getElementById("akArea").value, btmp_id) //FINISH THIS
 
 				document.getElementById("infArea").innerHTML = beatmap_data[0].artist + " - " + beatmap_data[0].title + " by " + beatmap_data[0].creator + "<br>Stars: " + beatmap_data[0].difficultyrating + "<br>CS: " + beatmap_data[0].diff_size + ", AR: " + beatmap_data[0].diff_approach + ", OD: " + beatmap_data[0].diff_overall + ", HP: " + beatmap_data[0].diff_drain + "<br>Max Combo: " + beatmap_data[0].max_combo
