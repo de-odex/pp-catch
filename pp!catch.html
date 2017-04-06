@@ -9,46 +9,6 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<script>
-			/*
-			config.read('config.ini')
-			api_key = config.get("DEFAULT", "APIKey")
-			# var setting
-			if api_key is not "":
-				osubdata = get_b_data(api_key)
-			else:
-				errors.configure(text="No API Key! Please indicate one in the config.ini.\n API Key can be found at \"https://osu.ppy.sh/p/api\".")
-				pass
-			stars = float(osubdata[0]["difficultyrating"])
-			max_combo = int(osubdata[0]["max_combo"])
-			try:
-				miss = int(missI.get()) if int(missI.get()) < max_combo else 0
-			except:
-				miss = 0
-			try:
-				max_player_combo = int(max_player_comboI.get()) if int(max_player_comboI.get()) <= max_combo else max_combo - miss
-			except:
-				max_player_combo = max_combo - miss
-			try:
-				acc = float(accI.get()) if float(accI.get()) >= 0 and float(accI.get()) <= 100 else 100
-			except:
-				acc = float(100)
-			ar = float(osubdata[0]["diff_approach"])
-
-			# DT must be applied first since it is not a multiplier
-			if DT.get() == 1:
-				if ar > 5:
-					ms = 200 + (11 - ar) * 100
-				else:
-					ms = 800 + (5 - ar) * 80
-				if (ms < 300):
-					ar = 11
-				elif (ms < 1200):
-					ar = round((11 - (ms - 300) / 150) * 100, 0) / 100
-				else:
-					ar = round((5 - (ms - 1200) / 120) * 100, 0) / 100
-
-			ppdisplaying(round(finalpp, 2))
-			*/
 			function roundNumber(num, scale) {
 				var number = Math.round(num * Math.pow(10, scale)) / Math.pow(10, scale);
 				if(num - number > 0){
@@ -72,9 +32,9 @@
 				var d = new Date();
 				d.setTime(d.getTime() + (exdays*24*60*60*1000));
 				var expires = "expires="+ d.toUTCString();
-				console.log(expires)
+				//console.log(expires)
 				document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-				console.log(cname + "=" + cvalue + ";" + expires + ";path=/")
+				//console.log(cname + "=" + cvalue + ";" + expires + ";path=/")
 			}
 
 			function getCookie(cname) {
@@ -95,6 +55,19 @@
 
 			function resetForm() {
 				document.getElementById("calcForm").reset();
+			}
+
+			var getLocation = function(href) {
+			    var link = document.createElement("a");
+			    link.href = href;
+			    return link;
+			};
+
+			function inputKeyUp(e) {
+			    e.which = e.which || e.keyCode;
+			    if(e.which == 13) {
+			        main()
+			    }
 			}
 		
 			//end of ripped functions
@@ -157,6 +130,7 @@
 
 			function get_b_api_data(api_key, beatmap_id){
 				var api = new XMLHttpRequest();
+				var itnt = new XMLHttpRequest();
 				try {
 					api.open("GET", "https://osu.ppy.sh/api/get_beatmaps?k=" + api_key + "&b=" + beatmap_id + "&m=2&a=1", false);
 					api.send();
@@ -165,7 +139,7 @@
 					if (api.readyState == 4 && (api.status == 200 || api.status == 304)) { 
 						data = JSON.parse(api.response)
 						//console.log(api.response)
-						console.log(data)
+						//console.log(data)
 						if (typeof data[0] === 'undefined'){ 
 							document.getElementById("error").innerHTML = "No Beatmap ID!"
 						}
@@ -176,15 +150,27 @@
 					}
 				}
 				catch(e){
-					document.getElementById("error").innerHTML = "No API Key/No internet!"
+					try{
+						itnt.open("GET", "https://www.google.com", false);
+						itnt.send();
+						document.getElementById("error").innerHTML = "No API Key!"
+					}
+					catch(ee){
+						document.getElementById("error").innerHTML = "No connection! Re-establish a connection to the internet."
+					}
 				}
 			}
 
 			function main(){
-				document.getElementById("error").innerHTML = ""
-				var beatmap_data, a
-				beatmap_data = get_b_api_data(document.getElementById("akArea").value, document.getElementById("biArea").value)
-				document.getElementById("infArea").innerHTML = "Stars: " + beatmap_data[0].difficultyrating + "<br>CS: " + beatmap_data[0].diff_size + ", AR: " + beatmap_data[0].diff_approach + ", OD: " + beatmap_data[0].diff_overall + ", HP: " + beatmap_data[0].diff_drain + "<br>Max Combo: " + beatmap_data[0].max_combo
+				document.getElementById("error").innerHTML = "Create an API key at <a href=\"https://osu.ppy.sh/p/api\">https://osu.ppy.sh/p/api</a><br>Beatmap Listing: <a href=\"https://osu.ppy.sh/p/beatmaplist\">https://osu.ppy.sh/p/beatmaplist</a>"
+				var beatmap_data, a, btmp_link, btmp_pathname, btmp_id
+				btmp_link = getLocation(document.getElementById("biArea").value)
+				btmp_pathname = btmp_link.pathname
+				btmp_id = btmp_pathname.split("/")[2]
+				beatmap_data = get_b_api_data(document.getElementById("akArea").value, btmp_id) //FINISH THIS
+
+				document.getElementById("infArea").innerHTML = beatmap_data[0].artist + " - " + beatmap_data[0].title + " by " + beatmap_data[0].creator + "<br>Stars: " + beatmap_data[0].difficultyrating + "<br>CS: " + beatmap_data[0].diff_size + ", AR: " + beatmap_data[0].diff_approach + ", OD: " + beatmap_data[0].diff_overall + ", HP: " + beatmap_data[0].diff_drain + "<br>Max Combo: " + beatmap_data[0].max_combo
+
 				pp = ctb_pp_calc(beatmap_data[0].difficultyrating, beatmap_data[0].max_combo, document.getElementById("pcArea").value, document.getElementById("mnArea").value, beatmap_data[0].diff_approach, document.getElementById("accArea").value)
 				document.getElementById("ppValue").innerHTML = pp
 			}
@@ -192,7 +178,7 @@
 			window.onload = function(){
 				document.getElementById("error").innerHTML = "Create an API key at <a href=\"https://osu.ppy.sh/p/api\">https://osu.ppy.sh/p/api</a><br>Beatmap Listing: <a href=\"https://osu.ppy.sh/p/beatmaplist\">https://osu.ppy.sh/p/beatmaplist</a>"
 				document.getElementById("akArea").value = getCookie("api")
-				console.log(getCookie("api"))
+				//console.log(getCookie("api"))
 			}
 
 		</script>
@@ -208,31 +194,35 @@
 
 	</head>
 	<body>
-		<div class="container" style="margin-top: 50px;">
+		<div class="container" style="margin-top: 3.5em;">
 			<div class="row">
-				<div class="col-md-12">
+				<div class="col-xs-12">
 					<form id="calcForm">
 						<table class="table table-bordered table-hover">
 							<tbody>
 								<tr>
-									<td></td>
-									<td class="text-xs-center">COOKIES WILL BE SAVED</td>
+									<td class="text-xs-center"><p>COOKIES WILL BE SAVED</p></td>
+									<td class="text-xs-center"><h1>pp!catch</h1></td>
 								</tr>
 
 								<tr>
-									<td class="text-xs-center"><b>API Key</b></td><td><input type="text" id="akArea" class="form-control" placeholder="Create one at https://osu.ppy.sh/p/api"></td>
+									<td class="text-xs-center"><b>API Key</b></td>
+									<td><input type="text" id="akArea" class="form-control" placeholder="Create one at https://osu.ppy.sh/p/api"></td>
 								</tr>
 
 								<tr>
-									<td class="text-xs-center"><b>Beatmap ID</b></td><td><input type="text" id="biArea" class="form-control" placeholder="https://osu.ppy.sh/b/{number here}"></td>
+									<td class="text-xs-center"><b>Beatmap Link</b></td>
+									<td><input type="text" id="biArea" class="form-control" placeholder="https://osu.ppy.sh/b/xxxxxx" onkeyup="inputKeyUp(event)"></td>
 								</tr>
 
 								<tr>
-									<td class="text-xs-center"><b>Info: </b></td><td><span id="infArea"></span></td>
+									<td class="text-xs-center"><b>Info: </b></td>
+									<td><span id="infArea"></span></td>
 								</tr>
 
 								<!--tr>
-									<td class="text-xs-center"><b>Star Rating</b></td><td><input type="text" id="srArea" class="form-control" placeholder="4.20"></td>
+									<td class="text-xs-center"><b>Star Rating</b></td>
+									<td><input type="text" id="srArea" class="form-control" placeholder="4.20"></td>
 								</tr>
 
 								<tr>
@@ -240,15 +230,18 @@
 								</tr-->
 
 								<tr>
-									<td class="text-xs-center"><b>Combo</b></td><td><input type="text" id="pcArea" class="form-control" placeholder="MAX"></td>
+									<td class="text-xs-center"><b>Combo</b></td>
+									<td><input type="text" id="pcArea" class="form-control" placeholder="MAX" onkeyup="inputKeyUp(event)"></td>
 								</tr>
 
 								<tr>
-									<td class="text-xs-center"><b>Accuracy</b></td><td><input type="text" id="accArea" class="form-control" placeholder="100"></td>
+									<td class="text-xs-center"><b>Accuracy</b></td>
+									<td><input type="text" id="accArea" class="form-control" placeholder="100" onkeyup="inputKeyUp(event)"></td>
 								</tr>
 
 								<tr>
-									<td class="text-xs-center"><b>Misses</b></td><td><input type="text" id="mnArea" class="form-control" placeholder="0"></td>
+									<td class="text-xs-center"><b>Misses</b></td>
+									<td><input type="text" id="mnArea" class="form-control" placeholder="0" onkeyup="inputKeyUp(event)"></td>
 								</tr>
 
 								<tr>
@@ -256,11 +249,11 @@
 
 									<td>
 										<div class="mods">
-											<input class="disabled" type="checkbox" id="mod-ez" name="mod-ez"> <label for="mod-ez">Easy</label> 
-											<input class="disabled" type="checkbox" id="mod-ht" name="mod-ht"> <label for="mod-ht">HalfTime</label> 
+											<input type="checkbox" id="mod-ez" name="mod-ez" disabled="true"> <label for="mod-ez">Easy</label> 
+											<input type="checkbox" id="mod-ht" name="mod-ht" disabled="true"> <label for="mod-ht">HalfTime</label> 
 											<input type="checkbox" id="mod-nf" name="mod-nf"> <label for="mod-nf">NoFail</label>
-											<input class="disabled" type="checkbox" id="mod-dt" name="mod-dt"> <label for="mod-dt">DoubleTime</label> 
-											<input class="disabled" type="checkbox" id="mod-hr" name="mod-hr"> <label for="mod-hr">HardRock</label> 
+											<input type="checkbox" id="mod-dt" name="mod-dt" disabled="true"> <label for="mod-dt">DoubleTime</label> 
+											<input type="checkbox" id="mod-hr" name="mod-hr" disabled="true"> <label for="mod-hr">HardRock</label> 
 											<input type="checkbox" id="mod-fl" name="mod-fl"> <label for="mod-fl">Flashlight</label> 
 											<input type="checkbox" id="mod-hd" name="mod-hd"> <label for="mod-hd">Hidden</label>
 										</div>
@@ -268,7 +261,8 @@
 								</tr>
 
 								<tr>
-									<td class="text-xs-center"><b>PP value</b></td><td class="text-xs-center"><b><h3><span id="ppValue" style="margin=0">42069PEPPYHIMEHIMEHAITAIAIAE</span>pp</h3></b></td>
+									<td class="text-xs-center"><b>PP value</b></td>
+									<td class="text-xs-center"><b><h3><span id="ppValue" style="margin=0">42069HIMEHIMEHAITAIPEEPEE</span>pp</h3></b></td>
 								</tr>
 
 								<tr>
@@ -288,9 +282,9 @@
 			setCookie("api", document.getElementById("akArea").value, 30)
 			console.log(getCookie("api"))
 		}) 
-		document.getElementById("pcArea").addEventListener("keyup", main) 
-		document.getElementById("accArea").addEventListener("keyup", main) 
-		document.getElementById("mnArea").addEventListener("keyup", main)
+		//document.getElementById("pcArea").addEventListener("keyup", main) 
+		//document.getElementById("accArea").addEventListener("keyup", main) 
+		//document.getElementById("mnArea").addEventListener("keyup", main)
 		document.getElementById("mod-nf").addEventListener("click", main)
 		document.getElementById("mod-fl").addEventListener("click", main)
 		document.getElementById("mod-hd").addEventListener("click", main)
