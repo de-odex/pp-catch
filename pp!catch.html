@@ -162,22 +162,32 @@
 
 			function main(){
 				document.getElementById("error").innerHTML = "Create an API key at <a href=\"https://osu.ppy.sh/p/api\">https://osu.ppy.sh/p/api</a><br>Beatmap Listing: <a href=\"https://osu.ppy.sh/p/beatmaplist\">https://osu.ppy.sh/p/beatmaplist</a>"
-				var beatmap_data, a, btmp_link, btmp_pathname, btmp_id
+				var beatmap_data, a, btmp_link, btmp_id
+
 
 				btmp_link = getLocation(document.getElementById("biArea").value)
-				btmp_pathname = btmp_link.pathname
-				console.log(btmp_link.hostname+" "+btmp_pathname.split("/")[1])
-				if ((btmp_pathname.split("/")[1] == "b") && (btmp_link.hostname == "osu.ppy.sh")){
-					btmp_id = btmp_pathname.split("/")[2]
+				//console.log(btmp_link.hostname+" "+btmp_link.hash)
+				if (btmp_link.hostname == "osu.ppy.sh"){
+					if (btmp_link.pathname.split("/")[1] == "b"){
+						btmp_id = btmp_link.pathname.split("/")[2]
+					}
+				}
+				else if (btmp_link.hostname == "new.ppy.sh"){
+					if (btmp_link.pathname.split("/")[1] == "beatmapsets"){
+						btmp_id = btmp_link.hash.split("/")[1]
+					}
 				}
 				else {
-					document.getElementById("error").innerHTML = "The link you input is not a beatmap link."
+					document.getElementById("error").innerHTML = "The link you input is not an osu! link."
 					return
 				}
 
-				beatmap_data = get_b_api_data(document.getElementById("akArea").value, btmp_id) //FINISH THIS
+				
+				beatmap_data = get_b_api_data(document.getElementById("akArea").value, btmp_id) 
 
-				document.getElementById("infArea").innerHTML = beatmap_data[0].artist + " - " + beatmap_data[0].title + " by " + beatmap_data[0].creator + "<br>Stars: " + beatmap_data[0].difficultyrating + "<br>CS: " + beatmap_data[0].diff_size + ", AR: " + beatmap_data[0].diff_approach + ", OD: " + beatmap_data[0].diff_overall + ", HP: " + beatmap_data[0].diff_drain + "<br>Max Combo: " + beatmap_data[0].max_combo
+
+				document.getElementById("infArea").innerHTML = beatmap_data[0].artist + " - " + beatmap_data[0].title + " by " + beatmap_data[0].creator + " [" + beatmap_data[0].version + "]" + "<br>Stars: " + beatmap_data[0].difficultyrating + "<br>CS: " + beatmap_data[0].diff_size + ", AR: " + beatmap_data[0].diff_approach + ", OD: " + beatmap_data[0].diff_overall + ", HP: " + beatmap_data[0].diff_drain + "<br>Max Combo: " + beatmap_data[0].max_combo
+
 
 				pp = ctb_pp_calc(beatmap_data[0].difficultyrating, beatmap_data[0].max_combo, document.getElementById("pcArea").value, document.getElementById("mnArea").value, beatmap_data[0].diff_approach, document.getElementById("accArea").value)
 				document.getElementById("ppValue").innerHTML = pp
