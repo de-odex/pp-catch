@@ -59,36 +59,31 @@
 			}
 
 			var getLocation = function(href) {
-				var link = document.createElement("a");
-				link.href = href;
-				return link;
+			    var link = document.createElement("a");
+			    link.href = href;
+			    return link;
 			};
 
 			function inputKeyUp(e) {
-				e.which = e.which || e.keyCode;
-				if(e.which == 13) {
-					main()
-				}
+			    e.which = e.which || e.keyCode;
+			    if(e.which == 13) {
+			        main()
+			    }
 			}
-			
-
+		
 			//end of ripped functions
 			function ctb_pp_calc(stars, max_combo, max_player_combo, miss, ar, acc){
 				var finalpp
-				//console.log(stars + "," + max_combo + "," + max_player_combo + "," + miss + "," + ar + "," + acc)
-				if ((max_player_combo == "") || ((max_player_combo > max_combo)&&(max_player_combo < 0))){
+				//console.log(stars + " " + max_combo + " " + max_player_combo + " " + miss + " " + ar + " " + acc)
+				if ((max_player_combo=="")||(max_player_combo>max_combo)){
 					max_player_combo = max_combo - miss
 				}
-				if ((miss == "") || (miss > max_combo)){
+				if ((miss=="")||(miss>max_combo)){
 					miss = 0
 				}
-				if ((acc < 0) || (acc > 100)){
+				if (!(acc>0)||!(acc<100)){
 					acc = 100
 				}
-				if (acc == ""){
-					acc = (max_combo - miss) / max_combo * 100
-				}
-				//console.log("end:" + stars + "," + max_combo + "," + max_player_combo + "," + miss + "," + ar + "," + acc)
 				//stars2pp
 				finalpp = Math.pow(((5 * Math.max(1, stars / 0.0049)) - 4), 2) / 100000
 				//length bonus
@@ -165,112 +160,30 @@
 				}
 			}
 
-			function get_s_api_data(api_key, beatmapset_id){
-				var api = new XMLHttpRequest();
-				var itnt = new XMLHttpRequest();
-				try {
-					api.open("GET", "https://osu.ppy.sh/api/get_beatmaps?k=" + api_key + "&s=" + beatmap_id + "&m=2&a=1", false);
-					api.send();
-					//console.log(api.readyState)
-					//console.log(api.status)
-					if (api.readyState == 4 && (api.status == 200 || api.status == 304)) { 
-						data = JSON.parse(api.response)
-						//console.log(api.response)
-						//console.log(data)
-						if (typeof data[0] === 'undefined'){ 
-							document.getElementById("error").innerHTML = "Invalid Beatmap ID!"
-						}
-						else {
-							return data
-						}
-						//console.log(data[0].difficultyrating)
-					}
-				}
-				catch(e){
-					if (window.navigator.onLine==true){
-						document.getElementById("error").innerHTML = "No API Key!"
-					}
-					else{
-						document.getElementById("error").innerHTML = "No connection! Re-establish a connection to the internet."
-					}
-				}
-			}
+			function main(){
+				document.getElementById("error").innerHTML = "Create an API key at <a href=\"https://osu.ppy.sh/p/api\">https://osu.ppy.sh/p/api</a><br>Beatmap Listing: <a href=\"https://osu.ppy.sh/p/beatmaplist\">https://osu.ppy.sh/p/beatmaplist</a>"
+				var beatmap_data, a, btmp_link, btmp_id
 
-			function beatmap_or_set(){
-				var btmp_link, btmp_id
+
 				btmp_link = getLocation(document.getElementById("biArea").value)
 				//console.log(btmp_link.hostname+" "+btmp_link.hash)
-				//if osu.ppy.sh
 				if (btmp_link.hostname == "osu.ppy.sh"){
-					//if osu.ppy.sh/b
 					if (btmp_link.pathname.split("/")[1] == "b"){
-						//get osu.ppy.sh/b/xxxxxxx
 						btmp_id = btmp_link.pathname.split("/")[2]
-						return [btmp_id, "b"]
-					}
-					//if osu.ppy.sh/s
-					else if (btmp_link.pathname.split("/")[1] == "s"){
-						btmpst_id = btmp_link.pathname.split("/")[2]
-						return [btmpst_id, "s"]
 					}
 				}
-				//if new.ppy.sh
 				else if (btmp_link.hostname == "new.ppy.sh"){
-					//if new.ppy.sh/beatmapsets
 					if (btmp_link.pathname.split("/")[1] == "beatmapsets"){
-						//get new.ppy.sh/beatmapsets/??????#???/xxxxxxx
 						btmp_id = btmp_link.hash.split("/")[1]
-						return [btmp_id, "b"]
 					}
 				}
 				else {
 					document.getElementById("error").innerHTML = "The link you input is not an osu! link."
-					return "end"
-				}
-			}
-
-			function main(){
-				document.getElementById("error").innerHTML = "Create an API key at <a href=\"https://osu.ppy.sh/p/api\">https://osu.ppy.sh/p/api</a><br>Beatmap Listing: <a href=\"https://osu.ppy.sh/p/beatmaplist\">https://osu.ppy.sh/p/beatmaplist</a>"
-				var beatmap_data, btmp_link, btmp_id, btmp_id_a, beatmapset_data
-
-				
-				btmp_id_a = beatmap_or_set()
-				if (btmp_id_a == "end"){
 					return
 				}
-				else if (btmp_id_a[1] == "b"){
-					btmp_id = btmp_id_a[0]
-					beatmap_data = get_b_api_data(document.getElementById("akArea").value, btmp_id) 
-				}
-				else if (btmp_id_a[1] == "s"){
-					document.getElementById("bmDiff").removeAttribute('hidden')
-					btmpst_id = btmp_id_a[0]
-					beatmapset_data = get_s_api_data(document.getElementById("akArea").value, btmpst_id)
-					for (i in beatmapset_data){
-						console.log(i)
-						var temp = document.createElement('option');
-						var text = document.createTextNode(beatmapset_data[i].version);
-						temp.appendChild(text)
-						var val = document.createAttribute("value");
-						val.value = i
-						temp.setAttributeNode(val)
-						document.getElementById("diffs").insertAdjacentElement("beforeend", temp);
-					}
 
-					selected_diff = document.getElementById("diffs").innerHTML
-
-					if (selected_diff == ">>Select a difficulty<<"){
-						document.getElementById("error").innerHTML = "Please select a beatmap"
-						return
-					}
-					else {
-						for (i in document.getElementById("diffs").children){
-							if 
-						}
-						btmp_id = beatmapset_data[selected_num]
-						beatmap_data = [beatmap_data = get_b_api_data(document.getElementById("akArea").value, btmp_id)]
-					}
-				}
+				
+				beatmap_data = get_b_api_data(document.getElementById("akArea").value, btmp_id) 
 
 
 				document.getElementById("infArea").innerHTML = beatmap_data[0].artist + " - " + beatmap_data[0].title + " by " + beatmap_data[0].creator + " [" + beatmap_data[0].version + "]" + "<br>Stars: " + beatmap_data[0].difficultyrating + "<br>CS: " + beatmap_data[0].diff_size + ", AR: " + beatmap_data[0].diff_approach + ", OD: " + beatmap_data[0].diff_overall + ", HP: " + beatmap_data[0].diff_drain + "<br>Max Combo: " + beatmap_data[0].max_combo
@@ -318,15 +231,6 @@
 								<tr>
 									<td class="text-xs-center"><b>Beatmap Link</b></td>
 									<td><input type="text" id="biArea" class="form-control" placeholder="osu.ppy.sh/b/ or new.ppy.sh" onkeyup="inputKeyUp(event)"></td>
-								</tr>
-
-								<tr id="bmDiff" hidden="">
-									<td class="text-xs-center"><b>Beatmap Difficulty</b></td>
-									<td class="text-xs-center">
-										<select class="form-control" id="diffs">
-											<option>>>Select a difficulty<<</option>
-										</select>
-									</td>
 								</tr>
 
 								<tr>
